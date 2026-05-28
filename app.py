@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
@@ -15,49 +16,43 @@ st.set_page_config(
 )
 
 # =========================================================
-# DATABASE
+# GOOGLE SHEETS
 # =========================================================
 
-conn = sqlite3.connect(
-    "database.db",
-    check_same_thread=False
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
+
+creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    st.secrets,
+    scope
 )
 
-cursor = conn.cursor()
+client = gspread.authorize(creds)
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS transacoes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo TEXT,
-    descricao TEXT,
-    categoria TEXT,
-    classificacao TEXT,
-    natureza TEXT,
-    valor REAL,
-    data TEXT,
-    recorrente TEXT,
-    parcela_atual INTEGER,
-    total_parcelas INTEGER
-)
-""")
-
-conn.commit()
+sheet = client.open(
+    "Finance Dashboard DB"
+).worksheet("transacoes")
 
 # =========================================================
 # FUNÇÕES
 # =========================================================
 
 def adicionar_transacao(
+   sheet.append_row([
+    len(sheet.get_all_records()) + 1,
     tipo,
-    descricao,
+    descricao_final,
     categoria,
     classificacao,
     natureza,
     valor,
-    data,
+    str(data_parcela.date()),
     recorrente,
+    parcela + 1,
     total_parcelas
-):
+]):
 
     data_base = pd.to_datetime(data)
 
@@ -122,9 +117,7 @@ def adicionar_transacao(
 
 # ---------------------------------------------------------
 
-def carregar_dados():
-
-    return pd.read_sql(
+  return pd.read_sql(
         "SELECT * FROM transacoes",
         conn
     )
@@ -133,12 +126,15 @@ def carregar_dados():
 
 def excluir_transacao(id_transacao):
 
-    cursor.execute(
-        "DELETE FROM transacoes WHERE id = ?",
-        (id_transacao,)
-    )
+    registros = sheet.get_all_records()
 
-    conn.commit()
+    for i, row in enumerate(registros, start=2):
+
+        if row["id"] == id_transacao:
+
+            sheet.delete_rows(i)
+
+            break
 
 # ---------------------------------------------------------
 
@@ -151,25 +147,19 @@ def atualizar_transacao(
     valor
 ):
 
-    cursor.execute("""
-    UPDATE transacoes
-    SET
-        descricao = ?,
-        categoria = ?,
-        classificacao = ?,
-        natureza = ?,
-        valor = ?
-    WHERE id = ?
-    """, (
-        descricao,
-        categoria,
-        classificacao,
-        natureza,
-        valor,
-        id_transacao
-    ))
+    registros = sheet.get_all_records()
 
-    conn.commit()
+    for i, row in enumerate(registros, start=2):
+
+        if row["id"] == id_transacao:
+
+            sheet.update(f"C{i}", descricao)
+            sheet.update(f"D{i}", categoria)
+            sheet.update(f"E{i}", classificacao)
+            sheet.update(f"F{i}", natureza)
+            sheet.update(f"G{i}", valor)
+
+            break
 
 # =========================================================
 # CARREGAR DADOS
@@ -386,29 +376,28 @@ else:
 # RESETAR BANCO
 # =========================================================
 
-st.sidebar.divider()
-
-st.sidebar.subheader(
-    "Administração"
-)
-
 if st.sidebar.button(
     "Resetar Todas as Transações"
 ):
 
-    cursor.execute(
-        "DELETE FROM transacoes"
-    )
+    sheet.clear()
 
-    cursor.execute("""
-    DELETE FROM sqlite_sequence
-    WHERE name='transacoes'
-    """)
-
-    conn.commit()
+    sheet.append_row([
+        "id",
+        "tipo",
+        "descricao",
+        "categoria",
+        "classificacao",
+        "natureza",
+        "valor",
+        "data",
+        "recorrente",
+        "parcela_atual",
+        "total_parcelas"
+    ])
 
     st.sidebar.success(
-        "Banco resetado com sucesso!"
+        "Banco resetado!"
     )
 
     st.rerun()
