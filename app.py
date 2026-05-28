@@ -309,18 +309,15 @@ st.sidebar.subheader(
 )
 
 if df.empty:
-    st.warning("Adicione transações para usar os filtros avançados.")
-    # Initialize df_filtrado as an empty DataFrame with the expected columns
-    # to prevent KeyErrors later in the script when trying to access its columns.
-    df_filtrado = pd.DataFrame(columns=[
-        'id', 'tipo', 'descricao', 'categoria', 'classificacao', 'natureza',
-        'valor', 'data', 'recorrente', 'parcela_atual', 'total_parcelas',
-        'mes', 'ano', 'mes_nome', 'mes_ano'
-    ])
-    # No need to st.stop() here, as we want the app to render with empty data.
-    # The previous st.stop() was causing issues in bare mode and was not preventing
-    # further execution in the intended way.
+
+    st.warning(
+        "Adicione transações."
+    )
+
+    df_filtrado = df.copy()
+
 else:
+
     meses_disponiveis = sorted(
         df["mes_ano"].unique(),
         reverse=True
@@ -355,6 +352,18 @@ else:
         default=df["natureza"].unique()
     )
 
+    df_filtrado = df[
+        (df["mes_ano"] == mes_selecionado)
+        &
+        (df["tipo"].isin(tipo_filtro))
+        &
+        (df["categoria"].isin(categoria_filtro))
+        &
+        (df["classificacao"].isin(classificacao_filtro))
+        &
+        (df["natureza"].isin(natureza_filtro))
+    ]
+    
 # =========================================================
 # RESETAR BANCO
 # =========================================================
