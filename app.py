@@ -25,7 +25,7 @@ scope = [
 ]
 
 creds = ServiceAccountCredentials.from_json_keyfile_dict(
-    st.secrets,
+    st.secrets["gcp_service_account"],
     scope
 )
 
