@@ -40,19 +40,16 @@ sheet = client.open(
 # =========================================================
 
 def adicionar_transacao(
-   sheet.append_row([
-    len(sheet.get_all_records()) + 1,
     tipo,
-    descricao_final,
+    descricao,
     categoria,
     classificacao,
     natureza,
     valor,
-    str(data_parcela.date()),
+    data,
     recorrente,
-    parcela + 1,
     total_parcelas
-]):
+):
 
     data_base = pd.to_datetime(data)
 
@@ -86,21 +83,8 @@ def adicionar_transacao(
                 f"({parcela + 1}/{total_parcelas})"
             )
 
-        cursor.execute("""
-        INSERT INTO transacoes (
-            tipo,
-            descricao,
-            categoria,
-            classificacao,
-            natureza,
-            valor,
-            data,
-            recorrente,
-            parcela_atual,
-            total_parcelas
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
+        sheet.append_row([
+            len(sheet.get_all_records()) + 1,
             tipo,
             descricao_final,
             categoria,
@@ -111,16 +95,15 @@ def adicionar_transacao(
             recorrente,
             parcela + 1,
             total_parcelas
-        ))
-
-    conn.commit()
+        ])
 
 # ---------------------------------------------------------
 
-  return pd.read_sql(
-        "SELECT * FROM transacoes",
-        conn
-    )
+def carregar_dados():
+
+    dados = sheet.get_all_records()
+
+    return pd.DataFrame(dados)
 
 # ---------------------------------------------------------
 
@@ -160,7 +143,7 @@ def atualizar_transacao(
             sheet.update(f"G{i}", valor)
 
             break
-
+            
 # =========================================================
 # CARREGAR DADOS
 # =========================================================
