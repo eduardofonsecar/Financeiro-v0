@@ -202,7 +202,7 @@ tipo = st.sidebar.selectbox(
     ["Receita", "Gasto"]
 )
 
-desricao = st.sidebar.text_input(
+desrcicao = st.sidebar.text_input(
     "Descrição"
 )
 
