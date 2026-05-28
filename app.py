@@ -330,7 +330,11 @@ if df.empty:
 
 else:
 
-    meses_disponiveis = sorted(
+    # =====================================================
+    # MÊS
+    # =====================================================
+
+    meses_disponiveis = ["Todos"] + sorted(
         df["mes_ano"].unique(),
         reverse=True
     )
@@ -340,41 +344,107 @@ else:
         meses_disponiveis
     )
 
+    # =====================================================
+    # TIPO
+    # =====================================================
+
+    tipo_opcoes = ["Todos"] + list(
+        df["tipo"].unique()
+    )
+
     tipo_filtro = st.sidebar.multiselect(
         "Tipo",
-        df["tipo"].unique(),
-        default=df["tipo"].unique()
+        tipo_opcoes,
+        default=["Todos"]
+    )
+
+    if "Todos" in tipo_filtro:
+
+        tipo_filtro = df["tipo"].unique()
+
+    # =====================================================
+    # CATEGORIA
+    # =====================================================
+
+    categoria_opcoes = ["Todos"] + list(
+        df["categoria"].unique()
     )
 
     categoria_filtro = st.sidebar.multiselect(
         "Categoria",
-        df["categoria"].unique(),
-        default=df["categoria"].unique()
+        categoria_opcoes,
+        default=["Todos"]
+    )
+
+    if "Todos" in categoria_filtro:
+
+        categoria_filtro = df["categoria"].unique()
+
+    # =====================================================
+    # CLASSIFICAÇÃO
+    # =====================================================
+
+    classificacao_opcoes = ["Todos"] + list(
+        df["classificacao"].unique()
     )
 
     classificacao_filtro = st.sidebar.multiselect(
         "Classificação",
-        df["classificacao"].unique(),
-        default=df["classificacao"].unique()
+        classificacao_opcoes,
+        default=["Todos"]
+    )
+
+    if "Todos" in classificacao_filtro:
+
+        classificacao_filtro = df["classificacao"].unique()
+
+    # =====================================================
+    # NATUREZA
+    # =====================================================
+
+    natureza_opcoes = ["Todos"] + list(
+        df["natureza"].unique()
     )
 
     natureza_filtro = st.sidebar.multiselect(
         "Natureza",
-        df["natureza"].unique(),
-        default=df["natureza"].unique()
+        natureza_opcoes,
+        default=["Todos"]
     )
 
-    df_filtrado = df[
-        (df["mes_ano"] == mes_selecionado)
-        &
-        (df["tipo"].isin(tipo_filtro))
-        &
-        (df["categoria"].isin(categoria_filtro))
-        &
-        (df["classificacao"].isin(classificacao_filtro))
-        &
-        (df["natureza"].isin(natureza_filtro))
-    ]
+    if "Todos" in natureza_filtro:
+
+        natureza_filtro = df["natureza"].unique()
+
+    # =====================================================
+    # FILTRO FINAL
+    # =====================================================
+
+    if mes_selecionado == "Todos":
+
+        df_filtrado = df[
+            (df["tipo"].isin(tipo_filtro))
+            &
+            (df["categoria"].isin(categoria_filtro))
+            &
+            (df["classificacao"].isin(classificacao_filtro))
+            &
+            (df["natureza"].isin(natureza_filtro))
+        ]
+
+    else:
+
+        df_filtrado = df[
+            (df["mes_ano"] == mes_selecionado)
+            &
+            (df["tipo"].isin(tipo_filtro))
+            &
+            (df["categoria"].isin(categoria_filtro))
+            &
+            (df["classificacao"].isin(classificacao_filtro))
+            &
+            (df["natureza"].isin(natureza_filtro))
+        ]
     
 # =========================================================
 # RESETAR BANCO
