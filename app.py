@@ -314,7 +314,19 @@ if df.empty:
         "Adicione transações."
     )
 
-    df_filtrado = df.copy()
+    df_filtrado = pd.DataFrame(columns=[
+        "id",
+        "tipo",
+        "descricao",
+        "categoria",
+        "classificacao",
+        "natureza",
+        "valor",
+        "data",
+        "recorrente",
+        "parcela_atual",
+        "total_parcelas"
+    ])
 
 else:
 
